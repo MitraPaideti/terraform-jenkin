@@ -41,5 +41,28 @@ pipeline
                 }
             }
         }
+        stage ("Approval Destroy") {
+    steps {
+        echo "Taking approval from DEV Manager for QA Deployment"
+        timeout(time: 7, unit: 'DAYS') {
+            input message: 'Do you want to Destroy the Infra', submitter: 'admin'
+            }
+                }
+            }
+    // Destroy stage      
+        stage ("Terraform Destroy") {
+            steps {
+                withCredentials([[
+                $class: 'AmazonWebServicesCredentialsBinding',
+                credentialsId: "AWS-access-key",
+                accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                secretKeyVariable: 'AWS_SECRET_ACCESS_KEY']]){
+                    sh """
+                    terraform destroy --auto-approve
+                    """                        
+                    // sh 'terraform -chdir="./v.14/test_env" destroy --auto-approve'       
+                    }
+               }
+            }
     }
 }
